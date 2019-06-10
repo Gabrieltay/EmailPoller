@@ -1,26 +1,96 @@
-plugins {
-    id 'java'
-    id 'org.jetbrains.kotlin.jvm' version '1.3.11'
+buildscript {
+    repositories {
+        jcenter()
+        mavenCentral()
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.31"
+    }
 }
 
-group 'sg.gov.tech'
-version '1.0-SNAPSHOT'
+plugins {
+    id "java"
+    id "org.jetbrains.kotlin.jvm" version "1.3.31"
+}
+
+group = "sg.gov.tech"
+version = "0.0.1-SNAPSHOT"
 
 sourceCompatibility = 1.8
 
 repositories {
+    jcenter()
     mavenCentral()
 }
 
+configurations {
+    ktlint
+    detekt
+}
+
 dependencies {
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
     compile group: 'javax.mail', name: 'mail', version: '1.4.1'
-    testCompile group: 'junit', name: 'junit', version: '4.12'
+    ktlint "com.pinterest:ktlint:0.32.0"
+    detekt "io.gitlab.arturbosch.detekt:detekt-cli:1.0.0-RC14"
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+    implementation("org.jetbrains.kotlin:kotlin-reflect")
+    testImplementation("io.mockk:mockk:1.9.3")
+    testImplementation("org.assertj:assertj-core:3.12.0")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.4.2")
 }
 
 compileKotlin {
-    kotlinOptions.jvmTarget = "1.8"
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
 }
 compileTestKotlin {
-    kotlinOptions.jvmTarget = "1.8"
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
 }
+
+test {
+    useJUnitPlatform()
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
+}
+
+apply plugin: 'kotlin'
+apply plugin: 'application'
+
+sourceSets {
+    main.kotlin.srcDirs += 'src/main/kotlin'
+    main.java.srcDirs += 'src/main/java'
+}
+
+mainClassName = 'sg.gov.tech.emailpoller.EmailPollerKt'
+
+
+task ktlint(type: JavaExec, group: "verification") {
+    description = "Check Kotlin code style."
+    classpath = configurations.ktlint
+    main = "com.pinterest.ktlint.Main"
+    args "src/**/*.kt"
+}
+check.dependsOn ktlint
+
+task ktlintFormat(type: JavaExec, group: "formatting") {
+    description = "Fix Kotlin code style deviations."
+    classpath = configurations.ktlint
+    main = "com.pinterest.ktlint.Main"
+    args "-F", "src/**/*.kt"
+}
+
+task detekt(type: JavaExec, group: "verification") {
+    description = "Check Kotlin code static analysis"
+    classpath = configurations.detekt
+    main = "io.gitlab.arturbosch.detekt.cli.Main"
+    def input = "$projectDir"
+    def config = "$projectDir/detekt.yml"
+    def filters = ".*/build/.*,.*/resources/.*"
+    def params = [ '-i', input, '-c', config, '-f', filters, '--parallel']
+    args(params)
+}
+check.dependsOn detekt

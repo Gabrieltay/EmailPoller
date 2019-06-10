@@ -1,3 +1,5 @@
+package sg.gov.tech.emailpoller
+
 fun main(args: Array<String>) {
 
     val protocol: String = "imap"
@@ -5,9 +7,9 @@ fun main(args: Array<String>) {
     val port: String = "993"
 
     // email address and password
-    val userName: String = ""
+    val userName: String = "xxx@gmail.com"
     val password: String = ""
 
-    val emailController  = EmailController(protocol, host, port, userName, password)
+    val emailController = EmailController(protocol, host, port, userName, password)
     emailController.downloadEmails()
 }

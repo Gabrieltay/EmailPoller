@@ -1,3 +1,5 @@
+package sg.gov.tech.emailpoller
+
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
