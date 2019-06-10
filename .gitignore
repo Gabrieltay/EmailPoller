@@ -1,0 +1,36 @@
+### Gradle ###
+# ------------
+.gradle
+!gradle/wrapper/gradle-wrapper.jar
+build/
+
+### IntelliJ IDEA ###
+# ------------
+.idea
+*.iws
+*.iml
+*.ipr
+out/
+
+### Eclipse ###
+# ------------
+*.classpath
+*.project
+*.settings
+bin/
+
+### Emacs ###
+# ------------
+.nb-*
+
+### NetBeans ###
+# ------------
+*~
+
+### Sublime Text ###
+# ------------
+*.sublime-*
+
+### OS X ###
+# ------------
+.DS_Store
