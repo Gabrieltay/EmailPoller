@@ -1,17 +1,25 @@
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
-import java.util.*
-import javax.mail.*
+import java.util.Properties
+import javax.mail.Session
+import javax.mail.Store
+import javax.mail.Folder
+import javax.mail.Flags
+import javax.mail.BodyPart
+import javax.mail.Part
+import javax.mail.Message
 import javax.mail.internet.MimeMultipart
 import javax.mail.search.FlagTerm
 
-class EmailController(val protocol: String,
-                      val host: String,
-                      val port: String,
-                      val userName: String,
-                      val password: String) {
-    lateinit var properties: Properties
+class EmailController(
+    val protocol: String,
+    val host: String,
+    val port: String,
+    val userName: String,
+    val password: String
+) {
+    var properties: Properties
 
     init {
         properties = Properties()
@@ -25,7 +33,7 @@ class EmailController(val protocol: String,
         properties.setProperty("mail.$protocol.socketFactory.port", port)
     }
 
-    fun downloadEmails(){
+    fun downloadEmails() {
         val session: Session = Session.getDefaultInstance(properties)
         // connects to the message store
         val store: Store = session.getStore(protocol)
@@ -53,10 +61,10 @@ class EmailController(val protocol: String,
         store.close()
     }
 
-    fun getMessageContent(message:Message): String {
-        var content: String? = null
+    fun getMessageContent(message: Message): String {
+        var content: String?
 
-        if ( message.content is MimeMultipart ) {
+        if (message.content is MimeMultipart) {
             val emailContent: StringBuilder = StringBuilder()
             parseMultipart(message.content as MimeMultipart, emailContent)
 
@@ -65,23 +73,22 @@ class EmailController(val protocol: String,
             content = message.content.toString()
         }
 
-        return content.replace("[^\\x00-\\x7F]", "");
+        return content.replace("[^\\x00-\\x7F]", "")
     }
 
     fun parseMultipart(mimeMultipart: MimeMultipart, emailContent: StringBuilder) {
-        val sequence = (0..mimeMultipart.count-1).asSequence()
+        val sequence = (0 until mimeMultipart.count - 1).asSequence()
 
-        for ( index in sequence ) {
-            val bodyPart:BodyPart = mimeMultipart.getBodyPart(index)
-            if ( bodyPart.content is MimeMultipart ) {
+        for (index in sequence) {
+            val bodyPart: BodyPart = mimeMultipart.getBodyPart(index)
+            if (bodyPart.content is MimeMultipart) {
                 parseMultipart(bodyPart.content as MimeMultipart, emailContent)
             }
 
-            if ( bodyPart.contentType.toLowerCase().contains("text/plain")) {
+            if (bodyPart.contentType.toLowerCase().contains("text/plain")) {
                 // Email Content Message
                 emailContent.append(bodyPart.content)
-            }
-            else if ( Part.ATTACHMENT.equals(bodyPart.disposition, true) ) {
+            } else if (Part.ATTACHMENT.equals(bodyPart.disposition, true)) {
                 // Email Content Attachment
                 val inputStream: InputStream = bodyPart.inputStream
                 val fileOutput: FileOutputStream = FileOutputStream(File(bodyPart.fileName))
